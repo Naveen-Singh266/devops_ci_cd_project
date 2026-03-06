@@ -1,0 +1,47 @@
+name: DevOps CI-CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+
+  build:
+    runs-on: self-hosted
+
+    steps:
+
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Docker Login
+      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+    - name: Build Docker Image
+      run: docker build -t naveen266/devops-app:${{ github.run_number }} .
+
+    - name: Security Scan
+      run: trivy image naveen266/devops-app:${{ github.run_number }}
+
+    - name: Push Docker Image
+      run: docker push naveen266/devops-app:${{ github.run_number }}
+
+  deploy:
+    needs: build
+    runs-on: self-hosted
+
+    steps:
+
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Terraform Init
+      working-directory: infra
+      run: terraform init
+
+    - name: Terraform Apply
+      working-directory: infra
+      run: terraform apply -auto-approve -var="image_tag=${{ github.run_number }}"
+
+    - name: Verify Deployment
+      run: kubectl get pods
