@@ -1,47 +1,63 @@
-name: DevOps CI-CD Pipeline
+resource "kubernetes_deployment_v1" "app" {
 
-on:
-  push:
-    branches: [ main ]
+  metadata {
+    name = "devops-app"
 
-jobs:
+    labels = {
+      app = "devops"
+    }
+  }
 
-  build:
-    runs-on: self-hosted
+  spec {
+    replicas = 2
 
-    steps:
+    selector {
+      match_labels = {
+        app = "devops"
+      }
+    }
 
-    - name: Checkout Code
-      uses: actions/checkout@v4
+    template {
 
-    - name: Docker Login
-      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+      metadata {
+        labels = {
+          app = "devops"
+        }
+      }
 
-    - name: Build Docker Image
-      run: docker build -t naveen266/devops-app:${{ github.run_number }} .
+      spec {
 
-    - name: Security Scan
-      run: trivy image naveen266/devops-app:${{ github.run_number }}
+        container {
+          name  = "devops-container"
+          image = "naveen266/devops-app:${var.image_tag}"
 
-    - name: Push Docker Image
-      run: docker push naveen266/devops-app:${{ github.run_number }}
+          port {
+            container_port = 3000
+          }
+        }
 
-  deploy:
-    needs: build
-    runs-on: self-hosted
+      }
+    }
+  }
+}
 
-    steps:
+resource "kubernetes_service_v1" "app" {
 
-    - name: Checkout Code
-      uses: actions/checkout@v4
+  metadata {
+    name = "devops-service"
+  }
 
-    - name: Terraform Init
-      working-directory: infra
-      run: terraform init
+  spec {
 
-    - name: Terraform Apply
-      working-directory: infra
-      run: terraform apply -auto-approve -var="image_tag=${{ github.run_number }}"
+    selector = {
+      app = "devops"
+    }
 
-    - name: Verify Deployment
-      run: kubectl get pods
+    port {
+      port        = 80
+      target_port = 3000
+    }
+
+    type = "NodePort"
+  }
+}
