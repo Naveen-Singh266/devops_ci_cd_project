@@ -39,13 +39,8 @@ jobs:
     runs-on: self-hosted
 
     steps:
-
     - name: Checkout Code
       uses: actions/checkout@v4
-
-    - name: test step simulations
-      working-directory: infra
-      run: echo "Testing successful"
 
     - name: Terraform Init
       working-directory: infra
@@ -62,6 +57,14 @@ jobs:
     - name: Terraform Apply
       working-directory: infra
       run: terraform apply -auto-approve -var="image_tag=${{ github.run_number }}"
+
+  pod_verify:
+    needs: deploy
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
 
     - name: Verify Deployment  
       run: kubectl get pods -o wide
