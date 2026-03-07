@@ -23,14 +23,29 @@ jobs:
     - name: Push Docker Image
       run: docker push naveen266/devops-app:${{ github.run_number }}
 
-  deploy:
+  test:
     needs: build
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Testing
+        run: echo "Testing successful"
+
+  deploy:
+    needs: test
     runs-on: self-hosted
 
     steps:
 
     - name: Checkout Code
       uses: actions/checkout@v4
+
+    - name: test step simulations
+      working-directory: infra
+      run: echo "Testing successful"
 
     - name: Terraform Init
       working-directory: infra
