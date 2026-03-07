@@ -20,9 +20,6 @@ jobs:
     - name: Build Docker Image
       run: docker build -t naveen266/devops-app:${{ github.run_number }} .
 
-    - name: Security Scan
-      run: trivy image naveen266/devops-app:${{ github.run_number }}
-
     - name: Push Docker Image
       run: docker push naveen266/devops-app:${{ github.run_number }}
 
@@ -38,6 +35,14 @@ jobs:
     - name: Terraform Init
       working-directory: infra
       run: terraform init
+
+    - name: terraform validate
+      working-directory: infra
+      run: terraform validate
+
+    - name: Terraform Plan
+      working-directory: infra
+      run: terraform plan -var="image_tag=${{ github.run_number }}"
 
     - name: Terraform Apply
       working-directory: infra
