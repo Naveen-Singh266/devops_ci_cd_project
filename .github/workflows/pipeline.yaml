@@ -48,5 +48,5 @@ jobs:
       working-directory: infra
       run: terraform apply -auto-approve -var="image_tag=${{ github.run_number }}"
 
-    - name: Verify Deployment
+    - name: Verify Deployment  
       run: kubectl get pods -o wide
