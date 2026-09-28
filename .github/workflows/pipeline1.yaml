@@ -25,5 +25,5 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Deploy
-        shell: powershell
+        # shell: powershell
         run: echo "Deployment is successful"
